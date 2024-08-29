@@ -1,0 +1,34 @@
+name: curl
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+  push:
+
+jobs:
+  curl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run curl
+        run: |
+          export SSLKEYLOGFILE=keys.txt
+          sudo tcpdump -i any -w dump.pcap &
+
+          for i in $(seq 10); do
+            (curl -sSfv 'https://api.smoke.lighthouse.garnercorp.com/version' 2>&1) >> curl.log || touch failure
+          done
+
+          sleep 10
+          kill $!
+
+          if [ -e failure ]; then
+            exit 1
+          fi
+
+      - name: Upload artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: .
