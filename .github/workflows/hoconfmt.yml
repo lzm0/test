@@ -1,0 +1,16 @@
+name: Format PR via Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  format:
+    if: github.event.issue.pull_request && github.event.comment.body == '/hoconfmt'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: lzm0/hoconfmt-action@main
